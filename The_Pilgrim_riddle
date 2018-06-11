@@ -1,0 +1,128 @@
+#  ответ на задачу в видео https://www.youtube.com/watch?v=6sBB-gRhfjE&t=188s
+
+
+def generate_graph(l):
+    nodes = []
+    for i in range(l):
+        for j in range(l):
+            nodes.append(str(i)+str(j))
+    return nodes
+
+
+def generate_rebra(l, nodes):
+    rebra = []
+    for i in nodes:
+        if int(i[0]) < l-1:
+            rebra.append(i+"-" + str(int(i[0])+1)+i[1])
+        if int(i[0]) > 0:
+            rebra.append(i + "-" + str(int(i[0]) - 1) + i[1])
+        if int(i[1]) < l-1:
+            rebra.append(i + "-" + i[0] + str(int(i[1]) + 1))
+        if int(i[1]) > 0:
+            rebra.append(i + "-" + i[0] + str(int(i[1]) - 1))
+    return rebra
+
+
+def remove_rebro(rebro, rebra):
+    # print('rebro: ', rebra)
+    rebro2 = rebro[3:5] + '-' + rebro[0:2]
+    # print('rebra: ', rebro, rebro2)
+    rebra.remove(rebro)
+    rebra.remove(rebro2)
+    return rebra
+
+
+def nalog_change(price, rebro):
+    if rebro[0]>rebro[3]:
+        price /= 2
+    if rebro[0]<rebro[3]:
+        price *= 2
+    if rebro[1]>rebro[4]:
+        price -= 2
+    if rebro[1]<rebro[4]:
+        price += 2
+    return price
+
+
+# ##### создаем итеративную функцию для хождения по нодам и ребрам
+def step(l, price, rebro, rebraa, pathh=[], depth= 0):
+    depth += 1
+    counts_of_winings = 0
+    terminal = str(l-1) * 2
+    cur_point = rebro[3:5]
+    price = nalog_change(price, rebro)
+    rebra = rebraa[:]
+    path = pathh[:]
+    path.append(rebro)
+
+    # проверка - не дошли ли мы
+    if cur_point == terminal:
+        if price == 0:
+            print("WIN! on: ", path)
+            return 1
+        else:
+            # print("Lose! on: ", path)
+            return 0
+
+    # Если не дошли:
+    else:
+        # print('-------')
+        # print('tek_rebro', rebro, ' in depth: ', depth , ' on path:', path)
+        # print('tek_rebra',rebra)
+        rebra = remove_rebro(rebro, rebra)
+
+        # Поиск подходящих ребер
+
+        possible_rebra = []
+        for i in rebra:
+            if i[0:2] == cur_point:
+
+                possible_rebra.append(i)
+
+        # Если нет подходящих ребер
+        if len(possible_rebra) == 0:
+            # print('dead_end on depth %s on path %s' % (depth, path))
+            return 0
+        if len(possible_rebra) > 0:
+            for new_rebro in possible_rebra:
+                counts_of_winings += step(l, price, new_rebro, rebra, path, depth)
+
+    return counts_of_winings
+
+        # проход по ребрам (текущее положение, как попали, набор ребер до этого, какой был налог):
+#   # Запоминаем путь, по которому прошли (можно по ребрам или нодам)
+#   # инициируем новую текущую ноду
+    # пересчитываем налог
+    # удаляем из возможных нод ту, по которой шрошлись (плюсом её зеркало)
+    # проверяем - не терминальная ли это нода?
+        # если да - проверяем, налог равен нулю?
+            # если да - возвращаем 1 (можно напечатать путь)
+            # если нет - тупик, возвращаем 0
+    # Проверяем наличие ребер для перехода:
+        # Если новых ребер нет - возвращаем 0 как сигнал о тупике
+        # для каждого ребра:
+            # вызываем его в новом проходе по ребрам
+
+
+
+# ##### Входные данные
+
+l = 6
+first_price = 2
+first_rebro = '01-02'
+rebra_to_remove = ['00-01']
+# rebra_to_remove = []
+
+nodes = generate_graph(l)
+
+global_rebra = []
+
+global_rebra = generate_rebra(l, nodes)
+
+for i in rebra_to_remove:
+    global_rebra = remove_rebro(i, global_rebra)
+
+# for i in rebra:
+#     print(i)
+
+print(step(l, first_price, first_rebro, global_rebra,[]))
